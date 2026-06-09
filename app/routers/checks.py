@@ -3,7 +3,7 @@ import time
 
 import httpx
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -15,15 +15,14 @@ router = APIRouter(prefix="/checks", tags=["checks"])
 REQUEST_TIMEOUT_SECONDS = 10.0
 
 
-async def check_site(site: Site, session: AsyncSession) -> Check:
+async def check_site(site: Site, http_client: httpx.AsyncClient, session: AsyncSession) -> Check:
     status_code = None
     response_time_ms = None
     is_available = False
 
     start_time = time.monotonic()
     try:
-        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as http_client:
-            response = await http_client.get(str(site.url))
+        response = await http_client.get(str(site.url))
         response_time_ms = (time.monotonic() - start_time) * 1000
         status_code = response.status_code
         is_available = 200 <= status_code <= 399
@@ -46,10 +45,11 @@ async def run_checks(session: AsyncSession = Depends(get_db)) -> RunChecksRespon
     sites_result = await session.execute(select(Site))
     all_sites = list(sites_result.scalars().all())
 
-    tasks: list[asyncio.Task[Check]] = []
-    async with asyncio.TaskGroup() as task_group:
-        for site in all_sites:
-            tasks.append(task_group.create_task(check_site(site, session)))
+    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as http_client:
+        tasks: list[asyncio.Task[Check]] = []
+        async with asyncio.TaskGroup() as task_group:
+            for site in all_sites:
+                tasks.append(task_group.create_task(check_site(site, http_client, session)))
     completed_checks = [task.result() for task in tasks]
 
     await session.commit()
@@ -70,5 +70,8 @@ async def run_checks(session: AsyncSession = Depends(get_db)) -> RunChecksRespon
 async def get_latest_checks(
     session: AsyncSession = Depends(get_db),
 ) -> list[Check]:
-    result = await session.execute(select(Check).order_by(Check.checked_at.desc()))
+    latest_check_ids = select(func.max(Check.id)).group_by(Check.site_id)
+    result = await session.execute(
+        select(Check).where(Check.id.in_(latest_check_ids)).order_by(Check.site_id)
+    )
     return list(result.scalars().all())

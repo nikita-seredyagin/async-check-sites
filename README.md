@@ -121,6 +121,8 @@ curl -X POST http://localhost:8000/checks/run
 
 ### GET /checks/latest — последние результаты проверок
 
+Возвращает последний чек по каждому сайту (один на сайт). Сайты без единой проверки не попадают в ответ.
+
 ```bash
 curl http://localhost:8000/checks/latest
 ```
@@ -129,11 +131,19 @@ curl http://localhost:8000/checks/latest
 ```json
 [
   {
-    "id": 1,
+    "id": 3,
     "site_id": 1,
     "is_available": true,
     "status_code": 200,
     "response_time_ms": 143.7,
+    "checked_at": "2026-06-09T12:00:01"
+  },
+  {
+    "id": 7,
+    "site_id": 2,
+    "is_available": false,
+    "status_code": null,
+    "response_time_ms": 10001.2,
     "checked_at": "2026-06-09T12:00:01"
   }
 ]
