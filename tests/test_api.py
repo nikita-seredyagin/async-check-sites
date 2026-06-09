@@ -1,3 +1,4 @@
+import httpx
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch
 
@@ -92,7 +93,7 @@ async def test_run_checks_marks_unavailable_on_error(http_client: AsyncClient):
 
     with patch("app.routers.checks.httpx.AsyncClient") as mock_http_client_class:
         mock_http_client_instance = AsyncMock()
-        mock_http_client_instance.get = AsyncMock(side_effect=Exception("Connection refused"))
+        mock_http_client_instance.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
         mock_http_client_instance.__aenter__ = AsyncMock(return_value=mock_http_client_instance)
         mock_http_client_instance.__aexit__ = AsyncMock(return_value=None)
         mock_http_client_class.return_value = mock_http_client_instance

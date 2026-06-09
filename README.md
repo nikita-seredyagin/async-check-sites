@@ -119,7 +119,7 @@ curl -X POST http://localhost:8000/checks/run
 
 ---
 
-### GET /checks/latest — последние результаты по каждому сайту
+### GET /checks/latest — последние результаты проверок
 
 ```bash
 curl http://localhost:8000/checks/latest
@@ -129,20 +129,12 @@ curl http://localhost:8000/checks/latest
 ```json
 [
   {
-    "site": {
-      "id": 1,
-      "name": "Example",
-      "url": "https://example.com/",
-      "created_at": "2026-06-09T12:00:00"
-    },
-    "latest_check": {
-      "id": 1,
-      "site_id": 1,
-      "is_available": true,
-      "status_code": 200,
-      "response_time_ms": 143.7,
-      "checked_at": "2026-06-09T12:00:01"
-    }
+    "id": 1,
+    "site_id": 1,
+    "is_available": true,
+    "status_code": 200,
+    "response_time_ms": 143.7,
+    "checked_at": "2026-06-09T12:00:01"
   }
 ]
 ```

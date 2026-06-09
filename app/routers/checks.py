@@ -27,7 +27,7 @@ async def check_site(site: Site, session: AsyncSession) -> Check:
         response_time_ms = (time.monotonic() - start_time) * 1000
         status_code = response.status_code
         is_available = 200 <= status_code <= 399
-    except Exception:
+    except httpx.HTTPError:
         response_time_ms = (time.monotonic() - start_time) * 1000
 
     check = Check(
