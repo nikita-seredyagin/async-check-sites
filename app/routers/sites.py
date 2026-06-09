@@ -30,7 +30,7 @@ async def add_site(
     return site
 
 
-@router.get("", response_model=list[SiteResponseSchema])
+@router.get("", response_model=list[SiteResponseSchema], status_code=status.HTTP_200_OK)
 async def list_sites(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),

@@ -2,7 +2,7 @@ import asyncio
 import time
 
 import httpx
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,7 +40,7 @@ async def check_site(site: Site, session: AsyncSession) -> Check:
     return check
 
 
-@router.post("/run", response_model=RunChecksResponseSchema)
+@router.post("/run", response_model=RunChecksResponseSchema, status_code=status.HTTP_200_OK)
 async def run_checks(session: AsyncSession = Depends(get_db)) -> RunChecksResponseSchema:
     """Запускает параллельную проверку всех сайтов и сохраняет результаты в БД."""
     sites_result = await session.execute(select(Site))
@@ -66,7 +66,7 @@ async def run_checks(session: AsyncSession = Depends(get_db)) -> RunChecksRespon
     )
 
 
-@router.get("/latest", response_model=list[CheckResponseSchema])
+@router.get("/latest", response_model=list[CheckResponseSchema], status_code=status.HTTP_200_OK)
 async def get_latest_checks(
     session: AsyncSession = Depends(get_db),
 ) -> list[Check]:
